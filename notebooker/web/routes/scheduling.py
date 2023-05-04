@@ -34,9 +34,7 @@ def scheduler_ui():
 @scheduling_bp.route("/scheduler/jobs")
 def all_schedules():
     jobs = current_app.apscheduler.get_jobs()
-    result = []
-    for job in jobs:
-        result.append(_job_to_json(job))
+    result = [_job_to_json(job) for job in jobs]
     return jsonify(result), 200
 
 

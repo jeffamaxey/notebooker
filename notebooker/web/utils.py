@@ -31,15 +31,15 @@ def _get_python_template_dir() -> str:
 
 def get_all_possible_templates(warn_on_local=True):
     if _get_python_template_dir():
-        all_checks = get_directory_structure()
-    else:
-        if warn_on_local:
-            logger.warning("Fetching all possible checks from local repo. New updates will not be retrieved from git.")
-        # Only import here because we don't actually want to import these if the app is working properly.
-        from notebooker import notebook_templates_example
+        return get_directory_structure()
+    if warn_on_local:
+        logger.warning("Fetching all possible checks from local repo. New updates will not be retrieved from git.")
+    # Only import here because we don't actually want to import these if the app is working properly.
+    from notebooker import notebook_templates_example
 
-        all_checks = get_directory_structure(os.path.abspath(notebook_templates_example.__path__[0]))
-    return all_checks
+    return get_directory_structure(
+        os.path.abspath(notebook_templates_example.__path__[0])
+    )
 
 
 def get_directory_structure(starting_point: Optional[str] = None) -> Dict[str, Union[Dict, None]]:
@@ -61,5 +61,6 @@ def get_directory_structure(starting_point: Optional[str] = None) -> Dict[str, U
 
 
 def all_templates_flattened():
-    templates = list(_gen_all_templates(get_all_possible_templates(warn_on_local=False)))
-    return templates
+    return list(
+        _gen_all_templates(get_all_possible_templates(warn_on_local=False))
+    )

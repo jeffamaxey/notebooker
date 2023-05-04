@@ -10,10 +10,10 @@ import notebooker.serializers
 
 def find_serializers(pkg):
     serializers = {}
-    for _, name, ispkg in pkgutil.iter_modules(pkg.__path__, pkg.__name__ + "."):
+    for _, name, ispkg in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
         module = importlib.import_module(name)
         szs = {cls: mod for (cls, mod) in inspect.getmembers(module, inspect.isclass) if mod.__module__ == name}
-        serializers.update(szs)
+        serializers |= szs
     return serializers
 
 

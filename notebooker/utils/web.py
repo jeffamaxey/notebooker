@@ -29,9 +29,9 @@ def json_to_python(json_candidate: AnyStr) -> Optional[AnyStr]:
     for var_name in sorted(val_dict.keys()):
         value = val_dict[var_name]
         if isinstance(value, (str, bytes)):
-            out_s.append("{} = '{}'".format(var_name, value))
+            out_s.append(f"{var_name} = '{value}'")
         else:
-            out_s.append("{} = {}".format(var_name, value))
+            out_s.append(f"{var_name} = {value}")
     return "\n".join(out_s)
 
 

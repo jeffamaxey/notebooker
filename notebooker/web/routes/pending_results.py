@@ -23,14 +23,27 @@ def _get_job_status(job_id, report_name):
     job_result = _get_job_results(job_id, report_name, get_serializer(), ignore_cache=True)
     if job_result is None:
         return {"status": "Job not found. Did you use an old job ID?"}
-    if job_result.status in (JobStatus.DONE, JobStatus.ERROR, JobStatus.TIMEOUT, JobStatus.CANCELLED):
-        response = {
+    return (
+        {
             "status": job_result.status.value,
-            "results_url": url_for("serve_results_bp.task_results", report_name=report_name, job_id=job_id),
+            "results_url": url_for(
+                "serve_results_bp.task_results",
+                report_name=report_name,
+                job_id=job_id,
+            ),
         }
-    else:
-        response = {"status": job_result.status.value, "run_output": "\n".join(job_result.stdout)}
-    return response
+        if job_result.status
+        in (
+            JobStatus.DONE,
+            JobStatus.ERROR,
+            JobStatus.TIMEOUT,
+            JobStatus.CANCELLED,
+        )
+        else {
+            "status": job_result.status.value,
+            "run_output": "\n".join(job_result.stdout),
+        }
+    )
 
 
 @pending_results_bp.route("/status/<path:report_name>/<job_id>")
@@ -59,7 +72,6 @@ def task_latest_status(report_name):
     """
     params = _params_from_request_args(request.args)
     result = get_latest_job_results(report_name, params, get_serializer())
-    job_id = result.job_id
-    if job_id:
+    if job_id := result.job_id:
         return jsonify(_get_job_status(job_id, report_name))
     return jsonify({"status": "Job not found for given overrides"})

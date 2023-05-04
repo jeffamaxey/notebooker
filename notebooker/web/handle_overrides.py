@@ -41,7 +41,7 @@ def _handle_overrides_safe(
         for node in nodes:
             if isinstance(node, ast.Assign):
                 targets = [_.id for _ in node.targets]
-                logger.info("Found an assignment to: {}".format(", ".join(targets)))
+                logger.info(f'Found an assignment to: {", ".join(targets)}')
                 for target in targets:
                     value = locals()[target]
                     result["overrides"][target] = value
@@ -49,15 +49,14 @@ def _handle_overrides_safe(
                         json.dumps(result["overrides"])  # Test that we can JSON serialise this - required by papermill
                     except TypeError as te:
                         issues.append(
-                            'Could not JSON serialise a parameter ("{}") - this must be serialisable so that '
-                            "we can execute the notebook with it! (Error: {}, Value: {})".format(target, str(te), value)
+                            f'Could not JSON serialise a parameter ("{target}") - this must be serialisable so that we can execute the notebook with it! (Error: {str(te)}, Value: {value})'
                         )
             elif isinstance(node, ast.Expr):
                 issues.append(
-                    "Found an expression that did nothing! It has a value of type: {}".format(type(node.value))
+                    f"Found an expression that did nothing! It has a value of type: {type(node.value)}"
                 )
     except Exception as e:
-        issues.append("An error was encountered: {}".format(str(e)))
+        issues.append(f"An error was encountered: {str(e)}")
 
     if not issues:
         try:
@@ -67,7 +66,7 @@ def _handle_overrides_safe(
             return result
         except TypeError as e:
             issues.append(
-                "Could not pickle: {}. All input must be picklable (sorry!). " "Error: {}".format(str(result), str(e))
+                f"Could not pickle: {result}. All input must be picklable (sorry!). Error: {str(e)}"
             )
     if issues:
         with open(output_path, "wb") as f:

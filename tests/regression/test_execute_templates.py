@@ -13,7 +13,7 @@ def test_execution_of_templates(template_name, template_dir, output_dir, flask_a
     flask_app.config["PY_TEMPLATE_DIR"] = ""
     with flask_app.app_context():
         _run_checks(
-            "job_id_{}".format(str(uuid.uuid4())[:6]),
+            f"job_id_{str(uuid.uuid4())[:6]}",
             datetime.datetime.now(),
             template_name,
             template_name,

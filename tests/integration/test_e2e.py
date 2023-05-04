@@ -27,7 +27,9 @@ def _check_report_output(job_id, serialiser, **kwargs):
     assert result.pdf == ""
     assert result.job_start_time < result.job_finish_time
     for k, v in kwargs.items():
-        assert getattr(result, k) == v, "Report output for attribute {} was incorrect!".format(k)
+        assert (
+            getattr(result, k) == v
+        ), f"Report output for attribute {k} was incorrect!"
 
 
 @pytest.mark.parametrize(
@@ -128,7 +130,7 @@ def test_run_report_and_rerun(
             serialiser,
             overrides=overrides,
             report_name=report_name,
-            report_title="Rerun of " + report_title,
+            report_title=f"Rerun of {report_title}",
             mailto=mailto,
             generate_pdf_output=False,
         )

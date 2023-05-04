@@ -132,9 +132,7 @@ class MongoResultSerializer(ABC):
 
     def _save_raw_to_db(self, out_data):
         out_data["update_time"] = datetime.datetime.now()
-        existing = self.library.find_one({"job_id": out_data["job_id"]})
-
-        if existing:
+        if existing := self.library.find_one({"job_id": out_data["job_id"]}):
             self.library.replace_one({"_id": existing["_id"]}, out_data)
         else:
             self.library.insert_one(out_data)
@@ -149,26 +147,22 @@ class MongoResultSerializer(ABC):
         self._save_raw_to_db(out_data)
 
     def update_stdout(self, job_id, new_lines, replace=False):
-        if replace:
-            result = self.library.find_one_and_update({"job_id": job_id}, {"$set": {"stdout": new_lines}})
-        else:
-            result = self.library.find_one_and_update({"job_id": job_id}, {"$push": {"stdout": {"$each": new_lines}}})
-
-        return result
+        return (
+            self.library.find_one_and_update(
+                {"job_id": job_id}, {"$set": {"stdout": new_lines}}
+            )
+            if replace
+            else self.library.find_one_and_update(
+                {"job_id": job_id}, {"$push": {"stdout": {"$each": new_lines}}}
+            )
+        )
 
     def update_check_status(self, job_id: str, status: JobStatus, **extra):
         if status == JobStatus.DONE:
             raise ValueError(
                 "update_check_status() should not be called with a completed job; use save_check_result() instead."
             )
-        existing = self.library.find_one({"job_id": job_id})
-        if not existing:
-            logger.warning(
-                "Couldn't update check status to {} for job id {} since it is not in the database.".format(
-                    status, job_id
-                )
-            )
-        else:
+        if existing := self.library.find_one({"job_id": job_id}):
             existing["status"] = status.value
             for k, v in extra.items():
                 if k == "error_info" and v:
@@ -180,6 +174,10 @@ class MongoResultSerializer(ABC):
                 else:
                     existing[k] = v
             self._save_raw_to_db(existing)
+        else:
+            logger.warning(
+                f"Couldn't update check status to {status} for job id {job_id} since it is not in the database."
+            )
 
     def save_check_stub(
         self,
@@ -234,20 +232,22 @@ class MongoResultSerializer(ABC):
                     filename=filename_func(notebook_result.job_id),
                     encoding="utf-8",
                 )
-        if isinstance(notebook_result, NotebookResultComplete):
-            if notebook_result.raw_html_resources:
-                if "outputs" in notebook_result.raw_html_resources:
-                    for filename, binary_data in notebook_result.raw_html_resources["outputs"].items():  # type: ignore
-                        self.result_data_store.put(binary_data, filename=filename, encoding="utf-8")
-                if "inlining" in notebook_result.raw_html_resources:
-                    self.result_data_store.put(
-                        json.dumps(notebook_result.raw_html_resources["inlining"]),
-                        filename=_css_inlining_filename(notebook_result.job_id),
-                        encoding="utf-8",
-                    )
+        if (
+            isinstance(notebook_result, NotebookResultComplete)
+            and notebook_result.raw_html_resources
+        ):
+            if "outputs" in notebook_result.raw_html_resources:
+                for filename, binary_data in notebook_result.raw_html_resources["outputs"].items():  # type: ignore
+                    self.result_data_store.put(binary_data, filename=filename, encoding="utf-8")
+            if "inlining" in notebook_result.raw_html_resources:
+                self.result_data_store.put(
+                    json.dumps(notebook_result.raw_html_resources["inlining"]),
+                    filename=_css_inlining_filename(notebook_result.job_id),
+                    encoding="utf-8",
+                )
 
         # Save to mongo
-        logger.info("Saving {}".format(notebook_result.job_id))
+        logger.info(f"Saving {notebook_result.job_id}")
         self._save_to_db(notebook_result)
 
     def _convert_result(
@@ -342,7 +342,7 @@ class MongoResultSerializer(ABC):
                 scheduler_job_id=result.get("scheduler_job_id", False),
             )
         else:
-            raise ValueError("Could not deserialise {} into result object.".format(result))
+            raise ValueError(f"Could not deserialise {result} into result object.")
 
     def _get_raw_check_result(self, job_id: str):
         return self.library.find_one({"job_id": job_id}, {"_id": 0})
@@ -392,9 +392,9 @@ class MongoResultSerializer(ABC):
     ) -> Iterator[Union[NotebookResultComplete, NotebookResultError, NotebookResultPending]]:
         base_filter = {}
         if mongo_filter:
-            base_filter.update(mongo_filter)
+            base_filter |= mongo_filter
         if since:
-            base_filter.update({"update_time": {"$gt": since}})
+            base_filter["update_time"] = {"$gt": since}
         projection = REMOVE_ID_PROJECTION if load_payload else REMOVE_PAYLOAD_FIELDS_AND_ID_PROJECTION
         results = self._get_raw_results(base_filter, projection, limit)
         for res in results:
@@ -404,10 +404,9 @@ class MongoResultSerializer(ABC):
                     yield converted_result
 
     def get_all_result_keys(self, limit: int = 0, mongo_filter: Optional[Dict] = None) -> List[Tuple[str, str]]:
-        keys = []
         base_filter = {"status": {"$ne": JobStatus.DELETED.value}}
         if mongo_filter:
-            base_filter.update(mongo_filter)
+            base_filter |= mongo_filter
         results = self.library.aggregate(
             [
                 stage
@@ -420,9 +419,7 @@ class MongoResultSerializer(ABC):
                 if stage
             ]
         )
-        for result in results:
-            keys.append((result["report_name"], result["job_id"]))
-        return keys
+        return [(result["report_name"], result["job_id"]) for result in results]
 
     @staticmethod
     def _mongo_filter(
@@ -437,7 +434,7 @@ class MongoResultSerializer(ABC):
             # irrespective of order and so we check subparts independently.
             # See https://stackoverflow.com/questions/14324626/pymongo-or-mongodb-is-treating-two-equal-python-dictionaries-as-different-object
             for k, v in overrides.items():
-                mongo_filter["overrides.{}".format(k)] = v
+                mongo_filter[f"overrides.{k}"] = v
         if status is not None:
             mongo_filter["status"] = status.value
         if as_of is not None:

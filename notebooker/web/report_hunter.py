@@ -93,7 +93,7 @@ def _report_hunter(webapp_config: WebappConfig, run_once: bool = False, timeout:
                 JobStatus.SUBMITTED: now - datetime.timedelta(minutes=SUBMISSION_TIMEOUT),
                 JobStatus.PENDING: now - datetime.timedelta(minutes=webapp_config.RUNNING_TIMEOUT),
             }
-            cutoff.update({k.value: v for (k, v) in cutoff.items()})  # Add value to dict for backwards compat
+            cutoff |= {k.value: v for (k, v) in cutoff.items()}
             for result in all_pending:
                 this_cutoff = cutoff.get(result.status)
                 if result.job_start_time <= this_cutoff:
@@ -126,11 +126,9 @@ def _report_hunter(webapp_config: WebappConfig, run_once: bool = False, timeout:
                         result.report_name, result.job_id, result, timeout=timeout, cache_dir=webapp_config.CACHE_DIR
                     )
                     logger.info(
-                        "Report-hunter found a change for {} (status: {}->{})".format(
-                            result.job_id, existing.status if existing else None, result.status
-                        )
+                        f"Report-hunter found a change for {result.job_id} (status: {existing.status if existing else None}->{result.status})"
                     )
-            logger.debug("Found {} updates since {}.".format(ct, last_query))
+            logger.debug(f"Found {ct} updates since {last_query}.")
             last_query = _last_query
         except Exception as e:
             if run_once:

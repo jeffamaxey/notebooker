@@ -17,13 +17,12 @@ def index():
     username = request.headers.get("X-Auth-Username")
     all_reports = get_all_possible_templates()
     with current_app.app_context():
-        result = render_template(
+        return render_template(
             "index.html",
             all_reports=all_reports,
             donevalue=JobStatus.DONE,  # needed so we can check if a result is available
             username=username,
         )
-        return result
 
 
 @index_bp.route("/result_listing/<path:report_name>", methods=["GET"])
@@ -37,17 +36,18 @@ def result_listing(report_name):
     result_limit = int(request.args.get("limit") or DEFAULT_RESULT_LIMIT)
     all_reports = get_all_possible_templates()
     with current_app.app_context():
-        result = render_template(
+        return render_template(
             "result_listing.html",
             all_reports=all_reports,
             donevalue=JobStatus.DONE,  # needed so we can check if a result is available
             username=username,
             report_name=report_name,
             result_limit=result_limit,
-            n_results_available=get_serializer().n_all_results_for_report_name(report_name),
-            titleised_report_name=inflection.titleize(report_name)
+            n_results_available=get_serializer().n_all_results_for_report_name(
+                report_name
+            ),
+            titleised_report_name=inflection.titleize(report_name),
         )
-        return result
 
 
 @index_bp.route("/delete_report/<job_id>", methods=["POST"])

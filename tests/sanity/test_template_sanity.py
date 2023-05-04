@@ -34,7 +34,9 @@ def test_template_has_parameters(template_name, template_dir, flask_app):
             template_name, notebooker_disable_git=True, py_template_dir="", warn_on_local=False
         )
         metadata_idx = _get_parameters_cell_idx(nb)
-        assert metadata_idx is not None, 'Template {} does not have a "parameters"-tagged cell.'.format(template_name)
+        assert (
+            metadata_idx is not None
+        ), f'Template {template_name} does not have a "parameters"-tagged cell.'
 
 
 @pytest.mark.parametrize("template_name", all_templates())
@@ -43,4 +45,6 @@ def test_template_can_generate_preview(template_dir, template_name, flask_app):
     with flask_app.app_context():
         preview = _get_preview(template_name, notebooker_disable_git=True, py_template_dir="", warn_on_local=False)
         # Previews in HTML are gigantic since they include all jupyter css and js.
-        assert len(preview) > 1000, "Preview was not properly generated for {}".format(template_name)
+        assert (
+            len(preview) > 1000
+        ), f"Preview was not properly generated for {template_name}"

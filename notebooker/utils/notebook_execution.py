@@ -16,10 +16,7 @@ def _output_dir(output_base_dir, report_name, job_id):
 
 
 def send_result_email(result: Union[NotebookResultComplete, NotebookResultError], default_mailfrom: str) -> None:
-    if result.mailfrom:
-        mailfrom = result.mailfrom
-    else:
-        mailfrom = default_mailfrom
+    mailfrom = result.mailfrom if result.mailfrom else default_mailfrom
     to_email = result.mailto
     report_title = (
         result.report_title.decode("utf-8") if isinstance(result.report_title, bytes) else result.report_title
@@ -36,7 +33,7 @@ def send_result_email(result: Union[NotebookResultComplete, NotebookResultError]
             if isinstance(report_name, bytes):
                 report_name = report_name.decode("utf-8")
             if result.pdf:
-                pdf_name = "{}_{}.pdf".format(report_name, result.job_start_time.strftime("%Y-%m-%dT%H%M%S"))
+                pdf_name = f'{report_name}_{result.job_start_time.strftime("%Y-%m-%dT%H%M%S")}.pdf'
                 pdf_path = os.path.join(tmp_dir, pdf_name)
                 with open(pdf_path, "wb") as f:
                     f.write(result.pdf)
@@ -50,7 +47,9 @@ def send_result_email(result: Union[NotebookResultComplete, NotebookResultError]
                     f.write(resource)
 
                 body = re.sub(
-                    r'<img src="{}"'.format(resource_path), r'<img src="cid:{}"'.format(resource_path_short), body
+                    f'<img src="{resource_path}"',
+                    f'<img src="cid:{resource_path_short}"',
+                    body,
                 )
                 attachments.append(new_path)
 

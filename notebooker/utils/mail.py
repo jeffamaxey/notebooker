@@ -61,7 +61,7 @@ def mail(from_address, to_address, subject, msg, attachments=None, server=""):
         attachments = attachments.split(",")
 
     server = server or os.environ.get(_SMTP_SERVER_ENV_KEY, "localhost")
-    logger.debug("Sending email using smtp server {}".format(server))
+    logger.debug(f"Sending email using smtp server {server}")
     s = smtplib.SMTP()
     s.connect(server)
     s.sendmail(from_address, recipients, _generate_mail_msg(from_address, to_address, subject, msg, attachments))
@@ -117,23 +117,19 @@ def _separate_plain_and_html_parts(msg: Union[str, List, Tuple]) -> (str, str):
 def _read_attachment(ctype: str, path: str) -> MIMEBase:
     maintype, subtype = ctype.split("/", 1)
     if maintype == "text":
-        fp = open(path)
-        # Note: we should handle calculating the charset
-        msg_att = MIMEText(fp.read(), _subtype=subtype)
-        fp.close()
+        with open(path) as fp:
+            # Note: we should handle calculating the charset
+            msg_att = MIMEText(fp.read(), _subtype=subtype)
     elif maintype == "image":
-        fp = open(path, "rb")
-        msg_att = MIMEImage(fp.read(), _subtype=subtype)
-        fp.close()
+        with open(path, "rb") as fp:
+            msg_att = MIMEImage(fp.read(), _subtype=subtype)
     elif maintype == "audio":
-        fp = open(path, "rb")
-        msg_att = MIMEAudio(fp.read(), _subtype=subtype)
-        fp.close()
+        with open(path, "rb") as fp:
+            msg_att = MIMEAudio(fp.read(), _subtype=subtype)
     else:
-        fp = open(path, "rb")
-        msg_att = MIMEBase(maintype, _subtype=subtype)
-        msg_att.set_payload(fp.read())
-        fp.close()
+        with open(path, "rb") as fp:
+            msg_att = MIMEBase(maintype, _subtype=subtype)
+            msg_att.set_payload(fp.read())
         # Encode the payload using Base64
         encoders.encode_base64(msg_att)
     return msg_att
@@ -145,7 +141,9 @@ def _process_attachments(message_root, msg_plain, msg_html, contains_html, attac
 
     for path in attachments:
         if not os.path.isfile(path):
-            logger.info("Attachment '%s' doesn't appear to be a file => Will ignore it" % path)
+            logger.info(
+                f"Attachment '{path}' doesn't appear to be a file => Will ignore it"
+            )
             continue
         message_root.attach(_process_one_attachment(path))
     return message_root

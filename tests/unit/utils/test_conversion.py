@@ -18,7 +18,7 @@ def test_generate_py_from_ipynb():
     ipynb_dir = tempfile.mkdtemp()
     py_dir = tempfile.mkdtemp()
     try:
-        for fname in [os.path.join(ipynb_dir, x + ".ipynb") for x in list("abcd")]:
+        for fname in [os.path.join(ipynb_dir, f"{x}.ipynb") for x in list("abcd")]:
             with open(fname, "w") as f:
                 f.write(
                     json.dumps(
@@ -55,7 +55,7 @@ def test_generate_py_from_ipynb():
             raise result.exception
         assert result.exit_code == 0
 
-        for fname in [os.path.join(py_dir, x + ".py") for x in list("abcd")]:
+        for fname in [os.path.join(py_dir, f"{x}.py") for x in list("abcd")]:
             with open(fname, "r") as f:
                 result = f.read()
             assert "import datetime" in result

@@ -62,5 +62,5 @@ def test_validate_run_params():
         mailfrom="test@example.com",
     )
     actual_output = validate_run_params(input_params, issues)
-    assert issues == []
+    assert not issues
     assert actual_output == expected_output

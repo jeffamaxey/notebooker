@@ -81,7 +81,7 @@ def regression_test(template_dir):
             try:
                 attempted_templates.append(template_name)
                 _run_checks(
-                    "job_id_{}".format(str(uuid.uuid4())[:6]),
+                    f"job_id_{str(uuid.uuid4())[:6]}",
                     datetime.datetime.now(),
                     template_name,
                     template_name,
@@ -98,8 +98,10 @@ def regression_test(template_dir):
                 logger.exception(f"Failed to execute template {template_name}")
 
         for template in attempted_templates:
-            logger.info("{}: {}".format(template, "FAILED" if template in failed_templates else "PASSED"))
-        if len(failed_templates) > 0:
+            logger.info(
+                f'{template}: {"FAILED" if template in failed_templates else "PASSED"}'
+            )
+        if failed_templates:
             raise NotebookRunException(
                 "The following templates failed to execute with no parameters:\n{}".format("\n".join(failed_templates))
             )

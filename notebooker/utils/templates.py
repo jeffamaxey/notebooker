@@ -36,16 +36,14 @@ def template_name_to_notebook_node(
     path = generate_ipynb_from_py(
         get_template_dir(), template_name, notebooker_disable_git, py_template_dir, warn_on_local=warn_on_local
     )
-    nb = nbformat.read(path, as_version=nbformat.v4.nbformat)
-    return nb
+    return nbformat.read(path, as_version=nbformat.v4.nbformat)
 
 
 def _get_preview(
     template_name: str, notebooker_disable_git: bool, py_template_dir: str, warn_on_local: Optional[bool] = True
 ) -> str:
     """Returns an HTML render of a report template, with parameters highlighted."""
-    cached = get_cache(("preview", template_name))
-    if cached:
+    if cached := get_cache(("preview", template_name)):
         logger.info("Getting %s preview from cache.", template_name)
         return cached
     nb = template_name_to_notebook_node(
@@ -67,7 +65,6 @@ def _get_preview(
 def _gen_all_templates(template_dict):
     for template_name, children in template_dict.items():
         if children:
-            for x in _gen_all_templates(children):  # Replace with "yield from" when we have py3
-                yield x
+            yield from _gen_all_templates(children)
         else:
             yield template_name

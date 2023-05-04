@@ -25,5 +25,6 @@ def all_templates():
     flask_app = Flask("test")
     flask_app.config.from_object(web_config)
     with flask_app.app_context():
-        templates = list(_gen_all_templates(get_all_possible_templates(warn_on_local=False)))
-        return templates
+        return list(
+            _gen_all_templates(get_all_possible_templates(warn_on_local=False))
+        )

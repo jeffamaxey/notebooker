@@ -32,9 +32,9 @@ def test_handle_overrides_handles_anything_cleanly_no_process_variable(text):
         issues = []
         overrides = handle_overrides(text, issues)
     if any(t for t in text.split("\n") if t.strip()):
-        assert len(issues) >= 1 or len(overrides) >= 1
+        assert issues or len(overrides) >= 1
     else:
-        assert len(issues) == 0 and len(overrides) == 0
+        assert not issues and len(overrides) == 0
 
 
 _CACHE = {}
@@ -63,9 +63,9 @@ def test_handle_overrides_handles_anything_cleanly_no_process_import(text):
             issues = []
             overrides = handle_overrides(text, issues)
     if any(t for t in text.split("\n") if t.strip()):
-        assert len(issues) >= 1 or len(overrides) >= 1
+        assert issues or len(overrides) >= 1
     else:
-        assert len(issues) == 0 and len(overrides) == 0
+        assert not issues and len(overrides) == 0
 
 
 @freezegun.freeze_time(datetime.datetime(2018, 1, 1))
@@ -98,8 +98,5 @@ def test_handle_overrides_handles_imports_with_issues(input_txt):
     else:
         error_string = "Object of type datetime is not JSON serializable, Value: 0010-01-01 00:00:00"
     assert issues == [
-        'Could not JSON serialise a parameter ("d") - '
-        "this must be serialisable so that we can execute "
-        "the notebook with it! "
-        "(Error: {})".format(error_string)
+        f'Could not JSON serialise a parameter ("d") - this must be serialisable so that we can execute the notebook with it! (Error: {error_string})'
     ]

@@ -122,7 +122,7 @@ def test_get_latest_successful_job_results_all_params(_get_job_results):
     res = results.get_latest_successful_job_results_all_params(
         sentinel.report_name, serializer, sentinel.retrying, sentinel.ignore_cache
     )
-    all_results = [r for r in res]
+    all_results = list(res)
     serializer.get_latest_successful_job_ids_for_name_all_params.assert_called_once_with(sentinel.report_name)
     _get_job_results.assert_called_once_with(
         sentinel.job_id, sentinel.report_name, serializer, sentinel.retrying, sentinel.ignore_cache

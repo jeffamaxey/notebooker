@@ -34,9 +34,7 @@ def _get_job_results(
         set_report_cache(report_name, job_id, notebook_result)
 
     if not notebook_result:
-        err_info = "Job results not found for report name={} / job id={}. " "Did you use an invalid job ID?".format(
-            report_name, job_id
-        )
+        err_info = f"Job results not found for report name={report_name} / job id={job_id}. Did you use an invalid job ID?"
         return constants.NotebookResultError(
             job_id, error_info=err_info, report_name=report_name, job_start_time=dt.now()
         )
@@ -60,7 +58,7 @@ def _get_results_from_name_and_params(
     report_name = convert_report_name_url_to_path(report_name)
     latest_job_id = job_id_func(report_name, params, as_of)
     if not latest_job_id:
-        err_info = "No job results found for report name={} with params={} as of {}".format(report_name, params, as_of)
+        err_info = f"No job results found for report name={report_name} with params={params} as of {as_of}"
         return constants.NotebookResultError(
             latest_job_id, error_info=err_info, report_name=report_name, overrides=params, job_start_time=dt.now()
         )

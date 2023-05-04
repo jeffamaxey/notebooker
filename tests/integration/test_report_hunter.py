@@ -119,9 +119,6 @@ def test_report_hunter_timeout(bson_library, status, time_later, should_timeout,
                 "Please try again! "
                 "Timed out after {:.0f} minutes 0 seconds.".format(mins),
             )
-        else:
-            # expected does not change
-            pass
         assert get_report_cache(report_name, job_id, cache_dir=webapp_config.CACHE_DIR) == expected
 
 

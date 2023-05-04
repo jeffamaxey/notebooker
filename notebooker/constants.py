@@ -51,7 +51,7 @@ class JobStatus(Enum):
 
     @staticmethod
     def from_string(s: AnyStr) -> Optional["JobStatus"]:
-        mapping = {
+        return {
             x.value: x
             for x in (
                 JobStatus.DONE,
@@ -63,7 +63,6 @@ class JobStatus(Enum):
                 JobStatus.DELETED,
             )
         }.get(s)
-        return mapping
 
 
 # Variables for inputs from web
@@ -124,9 +123,7 @@ class NotebookResultError(NotebookResultBase):
 
     @property
     def raw_html(self):
-        return """<p>This job resulted in an error: <br/><code style="white-space: pre-wrap;">{}</code></p>""".format(
-            self.error_info
-        )
+        return f"""<p>This job resulted in an error: <br/><code style="white-space: pre-wrap;">{self.error_info}</code></p>"""
 
     @property
     def email_html(self):

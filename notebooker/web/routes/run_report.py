@@ -61,8 +61,7 @@ def get_report_as_nb(relative_report_path: str) -> NotebookNode:
         current_app.config["NOTEBOOKER_DISABLE_GIT"],
         _get_python_template_dir(),
     )
-    nb = nbformat.read(path, as_version=nbformat.v4.nbformat)
-    return nb
+    return nbformat.read(path, as_version=nbformat.v4.nbformat)
 
 
 def get_report_parameters_html(relative_report_path: str) -> str:
@@ -354,7 +353,7 @@ def _rerun_report(job_id, prepare_only=False, run_synchronously=False):
         abort(404)
     prefix = "Rerun of "
     title = result.report_title if result.report_title.startswith(prefix) else (prefix + result.report_title)
-    new_job_id = run_report(
+    return run_report(
         result.report_name,
         title,
         result.mailto,
@@ -364,7 +363,6 @@ def _rerun_report(job_id, prepare_only=False, run_synchronously=False):
         scheduler_job_id=None,  # the scheduler will never call rerun
         run_synchronously=run_synchronously,
     )
-    return new_job_id
 
 
 @run_report_bp.route("/rerun_report/<job_id>/<path:report_name>", methods=["POST"])

@@ -16,7 +16,7 @@ from notebooker.utils.notebook_execution import logger
 
 
 def get_resources_dir(job_id):
-    return "{}/resources".format(job_id)
+    return f"{job_id}/resources"
 
 
 def ipython_to_html(ipynb_path: str, job_id: str, hide_code: bool = False) -> (nbformat.NotebookNode, Dict[str, Any]):
@@ -55,7 +55,7 @@ def ipython_to_pdf(raw_executed_ipynb: str, report_title: str, hide_code: bool =
 
 
 def _output_ipynb_name(report_name: str) -> str:
-    return "{}.ipynb".format(convert_report_path_into_name(report_name))
+    return f"{convert_report_path_into_name(report_name)}.ipynb"
 
 
 def _git_has_changes(repo: git.repo.Repo):
@@ -68,13 +68,10 @@ def _git_pull_latest(repo: git.repo.Repo):
 
 
 def _template(report_path: str, py_template_dir: AnyStr) -> AnyStr:
-    py_path = os.path.join(py_template_dir, "{}.py".format(report_path))
-    ipynb_path = os.path.join(py_template_dir, "{}.ipynb".format(report_path))
+    py_path = os.path.join(py_template_dir, f"{report_path}.py")
+    ipynb_path = os.path.join(py_template_dir, f"{report_path}.ipynb")
 
-    if os.path.isfile(py_path):
-        return py_path
-
-    return ipynb_path
+    return py_path if os.path.isfile(py_path) else ipynb_path
 
 
 def _ipynb_output_path(template_base_dir: AnyStr, report_path: AnyStr, git_hex: AnyStr) -> AnyStr:
@@ -85,29 +82,27 @@ def _ipynb_output_path(template_base_dir: AnyStr, report_path: AnyStr, git_hex: 
 def _get_template_path(report_path: str, warn_on_local: bool, py_template_dir: AnyStr) -> str:
     if py_template_dir:
         return _template(report_path, py_template_dir)
-    else:
-        if warn_on_local:
-            logger.warning(
-                "Loading from notebooker default templates. This is only expected if you are running locally."
-            )
-        return _template(report_path, pkg_resources.resource_filename(__name__, "../notebook_templates_example"))
+    if warn_on_local:
+        logger.warning(
+            "Loading from notebooker default templates. This is only expected if you are running locally."
+        )
+    return _template(report_path, pkg_resources.resource_filename(__name__, "../notebook_templates_example"))
 
 
 def _get_output_path_hex(notebooker_disable_git, py_template_dir) -> str:
-    if py_template_dir and not notebooker_disable_git:
-        latest_sha = None
-        try:
-            git_repo = git.repo.Repo(py_template_dir, search_parent_directories=True)
-            if _git_has_changes(git_repo):
-                logger.info("Pulling latest notebook templates from git.")
-                _git_pull_latest(git_repo)
-                logger.info("Git pull done.")
-            latest_sha = git_repo.commit("HEAD").hexsha
-        except Exception as e:
-            logger.exception(e)
-        return latest_sha or "OLD"
-    else:
+    if not py_template_dir or notebooker_disable_git:
         return str(uuid.uuid4())
+    latest_sha = None
+    try:
+        git_repo = git.repo.Repo(py_template_dir, search_parent_directories=True)
+        if _git_has_changes(git_repo):
+            logger.info("Pulling latest notebook templates from git.")
+            _git_pull_latest(git_repo)
+            logger.info("Git pull done.")
+        latest_sha = git_repo.commit("HEAD").hexsha
+    except Exception as e:
+        logger.exception(e)
+    return latest_sha or "OLD"
 
 
 def convert_report_name_into_path(report_name: str) -> str:
@@ -177,7 +172,7 @@ def generate_py_from_ipynb(ipynb_path, output_dir="."):
         return None
     mkdir_p(output_dir)
     filename_no_extension = os.path.basename(os.path.splitext(ipynb_path)[0])
-    output_path = os.path.join(output_dir, filename_no_extension + ".py")
+    output_path = os.path.join(output_dir, f"{filename_no_extension}.py")
     ipynb = jupytext.read(ipynb_path)
     jupytext.write(ipynb, output_path)
     logger.info("Successfully converted %s -> %s", ipynb_path, output_path)

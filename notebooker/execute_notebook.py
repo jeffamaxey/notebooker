@@ -93,26 +93,28 @@ def _run_checks(
     output_ipynb = _output_ipynb_name(template_name)
 
     if not os.path.isdir(output_dir):
-        logger.info("Making dir @ {}".format(output_dir))
+        logger.info(f"Making dir @ {output_dir}")
         os.makedirs(output_dir)
 
     py_template_dir = python_template_dir(py_template_base_dir, py_template_subdir)
     ipynb_raw_path = generate_ipynb_from_py(template_base_dir, template_name, notebooker_disable_git, py_template_dir)
     ipynb_executed_path = os.path.join(output_dir, output_ipynb)
 
-    logger.info("Executing notebook at {} using parameters {} --> {}".format(ipynb_raw_path, overrides, output_ipynb))
+    logger.info(
+        f"Executing notebook at {ipynb_raw_path} using parameters {overrides} --> {output_ipynb}"
+    )
     pm.execute_notebook(
         ipynb_raw_path, ipynb_executed_path, parameters=overrides, log_output=True, prepare_only=prepare_only
     )
     with open(ipynb_executed_path, "r") as f:
         raw_executed_ipynb = f.read()
 
-    logger.info("Saving output notebook as HTML from {}".format(ipynb_executed_path))
+    logger.info(f"Saving output notebook as HTML from {ipynb_executed_path}")
     html, resources = ipython_to_html(ipynb_executed_path, job_id)
     email_html, _ = ipython_to_html(ipynb_executed_path, job_id, hide_code=hide_code)
     pdf = ipython_to_pdf(raw_executed_ipynb, report_title, hide_code=hide_code) if generate_pdf_output else ""
 
-    notebook_result = NotebookResultComplete(
+    return NotebookResultComplete(
         job_id=job_id,
         job_start_time=job_start_time,
         job_finish_time=datetime.datetime.now(),
@@ -130,7 +132,6 @@ def _run_checks(
         scheduler_job_id=scheduler_job_id,
         mailfrom=mailfrom,
     )
-    return notebook_result
 
 
 def run_report(
@@ -157,8 +158,7 @@ def run_report(
 ):
 
     job_id = job_id or str(uuid.uuid4())
-    stop_execution = os.getenv("NOTEBOOKER_APP_STOPPING")
-    if stop_execution:
+    if stop_execution := os.getenv("NOTEBOOKER_APP_STOPPING"):
         logger.info("Aborting attempt to run %s, jobid=%s as app is shutting down.", report_name, job_id)
         result_serializer.update_check_status(job_id, JobStatus.CANCELLED, error_info=CANCEL_MESSAGE)
         return
@@ -285,22 +285,18 @@ def _get_overrides(overrides_as_json: AnyStr, iterate_override_values_of: Option
     if isinstance(overrides, (list, tuple)):
         if iterate_override_values_of:
             logger.warning(
-                "An --iterate-override-values-of has been specified ({}), but a list of overrides ({}) "
-                "has been given. We can't use this parameter as expected, but will continue with the "
-                "list of overrides.".format(iterate_override_values_of, overrides)
+                f"An --iterate-override-values-of has been specified ({iterate_override_values_of}), but a list of overrides ({overrides}) has been given. We can't use this parameter as expected, but will continue with the list of overrides."
             )
         all_overrides = overrides
     elif iterate_override_values_of:
         if iterate_override_values_of not in overrides:
             raise ValueError(
-                "Can't iterate over override values unless it is given in the override json! "
-                "Given overrides were: {}".format(overrides)
+                f"Can't iterate over override values unless it is given in the override json! Given overrides were: {overrides}"
             )
         to_iterate = overrides[iterate_override_values_of]
         if not isinstance(to_iterate, (list, tuple)):
             raise ValueError(
-                "Can't iterate over a non-list or tuple of variables. "
-                "The given value was a {} - {}.".format(type(to_iterate), to_iterate)
+                f"Can't iterate over a non-list or tuple of variables. The given value was a {type(to_iterate)} - {to_iterate}."
             )
         for iterated_value in to_iterate:
             new_override = copy.deepcopy(overrides)
@@ -348,7 +344,7 @@ def execute_notebook_entrypoint(
     logger.info("mailto = %s", mailto)
     logger.info("error_mailto = %s", error_mailto)
     logger.info("email_subject = %s", email_subject)
-    logger.info("mailfrom = %s" % mailfrom)
+    logger.info(f"mailfrom = {mailfrom}")
     logger.info("pdf_output = %s", pdf_output)
     logger.info("hide_code = %s", hide_code)
     logger.info("prepare_notebook_only = %s", prepare_notebook_only)

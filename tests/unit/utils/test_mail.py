@@ -140,7 +140,7 @@ def test_separate_plain_and_html_parts_bad_cases(bad_input):
 def test_read_attachment(ctype, ctor, arg):
     compat_builtin = "builtins.open"
     with patch(_MAIL_MODULE + ctor) as mock_ctor:
-        with patch(compat_builtin) as mo, patch(_MAIL_MODULE + "encoders"):
+        with (patch(compat_builtin) as mo, patch(f"{_MAIL_MODULE}encoders")):
             _read_attachment(ctype, sentinel.path)
             arg = arg or mo.return_value.read.return_value
             mock_ctor.assert_called_once_with(arg, _subtype="subtype")

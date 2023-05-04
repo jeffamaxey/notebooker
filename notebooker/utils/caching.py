@@ -7,7 +7,7 @@ cache = None
 
 
 def _cache_key(report_name, job_id):
-    return "report_name={}&job_id={}".format(report_name, job_id)
+    return f"report_name={report_name}&job_id={job_id}"
 
 
 @retrying.retry(stop_max_attempt_number=3)

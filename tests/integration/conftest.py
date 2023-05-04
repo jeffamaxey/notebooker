@@ -120,15 +120,19 @@ DUMMY_REPORT_IPYNB = """
 
 @pytest.fixture
 def setup_workspace(workspace):
-    (workspace.workspace + "/templates").mkdir()
+    f"{workspace.workspace}/templates".mkdir()
     git.Git(workspace.workspace).init()
-    (workspace.workspace + "/templates/fake").mkdir()
+    f"{workspace.workspace}/templates/fake".mkdir()
 
-    py_report_to_run = workspace.workspace + "/templates/fake/py_report.py"
+    py_report_to_run = f"{workspace.workspace}/templates/fake/py_report.py"
     py_report_to_run.write_lines(DUMMY_REPORT_PY.split("\n"))
 
-    ipynb_report_to_run = workspace.workspace + "/templates/fake/ipynb_report.ipynb"
+    ipynb_report_to_run = (
+        f"{workspace.workspace}/templates/fake/ipynb_report.ipynb"
+    )
     ipynb_report_to_run.write_lines(DUMMY_REPORT_IPYNB.split("\n"))
 
-    report_to_run_failing = workspace.workspace + "/templates/fake/report_failing.py"
+    report_to_run_failing = (
+        f"{workspace.workspace}/templates/fake/report_failing.py"
+    )
     report_to_run_failing.write_lines(DUMMY_FAILING_REPORT.split("\n"))

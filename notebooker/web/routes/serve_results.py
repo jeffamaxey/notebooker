@@ -40,7 +40,7 @@ def _render_results(job_id: str, report_name: str, result: NotebookResultBase) -
         url_for("serve_results_bp.task_results_html", report_name=report_name, job_id=job_id) if job_id else ""
     )
     if result and result.overrides:
-        clone_url = clone_url + "?json_params={}".format(json.dumps(result.overrides))
+        clone_url = f"{clone_url}?json_params={json.dumps(result.overrides)}"
     return render_template(
         "results.html",
         job_id=job_id,
@@ -273,7 +273,9 @@ def download_ipynb_result(job_id, report_name):
         return Response(
             result.raw_ipynb_json,
             mimetype="application/vnd.jupyter",
-            headers={"Content-Disposition": "attachment;filename={}.ipynb".format(job_id)},
+            headers={
+                "Content-Disposition": f"attachment;filename={job_id}.ipynb"
+            },
         )
     else:
         abort(404)
@@ -294,7 +296,9 @@ def download_pdf_result(job_id, report_name):
         return Response(
             result.pdf,
             mimetype="application/pdf",
-            headers={"Content-Disposition": "attachment;filename={}".format(_pdf_filename(job_id))},
+            headers={
+                "Content-Disposition": f"attachment;filename={_pdf_filename(job_id)}"
+            },
         )
     else:
         abort(404)

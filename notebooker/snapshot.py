@@ -26,16 +26,16 @@ def _write_notebook_outputs(result, directory):
     for path, output in result.raw_html_resources["outputs"].items():
         output_path = os.path.join(directory, path)
         _create_dirs_if_not_present(output_path)
-        logger.info("Writing resources to {}".format(output_path))
+        logger.info(f"Writing resources to {output_path}")
         with open(output_path, "wb") as output_file:
             output_file.write(output)
 
 
 def _write_notebook_html(result, directory):
-    override_str = "".join(["{}_{}".format(x, y) for x, y in result.overrides.items()])
-    save_file_name = "{}.html".format(override_str)
+    override_str = "".join([f"{x}_{y}" for x, y in result.overrides.items()])
+    save_file_name = f"{override_str}.html"
     save_file_path = os.path.join(directory, save_file_name)
-    logger.info("Writing notebook result to {}".format(save_file_path))
+    logger.info(f"Writing notebook result to {save_file_path}")
     _create_dirs_if_not_present(save_file_path)
     with open(save_file_path, "w") as save_file:
         save_file.write(result.raw_html)

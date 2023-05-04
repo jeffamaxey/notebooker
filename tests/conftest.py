@@ -49,8 +49,7 @@ def mongo_server():
     api (`pymongo.MongoClient`)  : PyMongo Client API connected to this server
     .. also inherits all attributes from the `workspace` fixture
     """
-    for server in _mongo_server():
-        yield server
+    yield from _mongo_server()
 
 
 @pytest.fixture

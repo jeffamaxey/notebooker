@@ -63,9 +63,9 @@ def test_main(mongo_host, setup_and_cleanup_notebooker_filesystem, webapp_config
             mongo_host=mongo_host, database_name="notebooker", result_collection_name="NOTEBOOK_OUTPUT"
         )
         result = serializer.get_check_result(job_id)
-        assert isinstance(result, NotebookResultComplete), "Result is not instance of {}, it is {}".format(
-            NotebookResultComplete, type(result)
-        )
+        assert isinstance(
+            result, NotebookResultComplete
+        ), f"Result is not instance of {NotebookResultComplete}, it is {type(result)}"
         assert result.raw_ipynb_json
         assert result.pdf == pdf_contents
 
